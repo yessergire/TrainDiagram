@@ -1,0 +1,6 @@
+<div class="form-group">
+    <label for="cityCode">Select destination </label>
+    <select class="form-control" id="cityCode" (change)="updateCityCode()" [(ngModel)]="cityCode" required>
+      <option *ngFor="let cityCode of cityCodes" value={{cityCode}}>{{cityNames[cityCode]}}</option>
+    </select>
+  </div>

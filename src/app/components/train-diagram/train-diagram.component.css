@@ -1,0 +1,28 @@
+#tooltip {
+    background-color: white;
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    left: 756px;
+    top: 344px;
+}
+
+#tooltip > h3 {
+    font-size: 16px;
+    margin: 3px;
+}
+
+#tooltip > h3 > span {
+    font-size: 20px;
+}
+
+#tooltip > p {
+    font-size: 14px;
+    margin: 0px;
+}
+
+#tooltip > p > span {
+    font-size: 16px;
+    margin-top: 0px;
+}
