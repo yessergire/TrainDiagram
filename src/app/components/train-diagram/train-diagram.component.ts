@@ -107,15 +107,6 @@ export class TrainDiagramComponent implements OnInit {
     this.drawTrainLine(train, timeTableLines);
 
     this.svg.call(d3.drag().on("drag", this.onDrag));
-    // const tooltipGroup = this.svg.append("g")
-    //   .style("font", "14px sans-serif");
-
-    // const tooltipPath = tooltipGroup.append("path")
-    //   .attr("fill", "white");
-
-    // const tooltipText = tooltipGroup.append("text");
-    // const tooltipTitle = tooltipText.append("tspan");
-
     this.drawTrainLineCircles(train, x, y);
 
     // draw current time as vertical line
@@ -126,14 +117,8 @@ export class TrainDiagramComponent implements OnInit {
 
   private drawTooltip(element: any, onMouseMove: any) {
     this.tooltip = d3.select("#tooltip").style("opacity", 0);
-    element
-      .on("mouseover", (e: any, train: Train) => this.tooltip.style("opacity", 1))
-      .on("mousemove", onMouseMove)
-      // .on("mouseleave", (e: any, d: any) => {
-      //   this.tooltip.transition()
-      //     .duration(1000)
-      //     .style("opacity", 0)
-      // });
+    element.on("mousemove", onMouseMove)
+      .on("mouseover", (e: any, train: Train) => this.tooltip.style("opacity", 1));
   }
 
   private drawTrainLine(trainPath: any, timeTableLines: d3.Line<TimeTable>) {
@@ -181,15 +166,14 @@ export class TrainDiagramComponent implements OnInit {
       d3.select(`.train-${currentTrain.trainNumber}`)
         .style("stroke-width", "3");
 
-      const trainNumberLink = `<a href="/train/${currentTrain.trainNumber}">${currentTrain.trainNumber}</a>`;
       if (!currentTrain.commuterLineID){
         this.tooltip
           .select(".commuter-title")
-          .html(`<th>${currentTrain.trainType}</th><td>${trainNumberLink}</td>`);
+          .html(`<th>${currentTrain.trainType}</th><td>${currentTrain.trainNumber}</td>`);
       } else {
         this.tooltip
           .select(".commuter-title")
-          .html(`<th>${currentTrain.trainType} ${currentTrain.commuterLineID}</th><td>${trainNumberLink}</td>`);
+          .html(`<th>${currentTrain.trainType} ${currentTrain.commuterLineID}</th><td>${currentTrain.trainNumber}</td>`);
       }
       this.tooltip
         .select(".commuter-station")
