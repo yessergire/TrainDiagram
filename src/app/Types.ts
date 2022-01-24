@@ -55,6 +55,7 @@ export interface Train {
   version: number,
   timetableType: string,
   timetableAcceptanceDate: string,
-  deleted?: boolean
-  timeTableRows: TimeTable[]
+  deleted?: boolean,
+  timeTableRows: TimeTable[],
+  trackingEventRows?: TrackingEvent[]
 }
