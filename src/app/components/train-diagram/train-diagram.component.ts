@@ -21,18 +21,22 @@ export class TrainDiagramComponent implements OnInit {
 
   private routeStations: string[] = [];
 
+  private svg: any;
   private chart: any;
   private height = 600;
   private width = window.innerWidth;
 
-  private margin = { left: 10, right: 10, top: 10, bottom: 50 };
+  private margin = { left: 120, right: 10, top: 10, bottom: 50 };
   private tooltip: any;
 
+  xScale: any;
+  yScale: any;
+  trainGroup: any;
 
   @HostListener('window:resize', ['$event'])
   onWindowResize() {
     this.width = window.innerWidth;
-    this.drawChart();
+    this.createChart();
   }
 
   constructor(
@@ -59,144 +63,185 @@ export class TrainDiagramComponent implements OnInit {
 
   private filterScheduledTime = (d: TimeTable) => (this.filterStations(d) && this.filterTimewindow(d))
 
-  private drawChart(): void {
-    const now = this.timeReference;
-    const maxTextLength = Math.max.apply(null, this.routeStations.map(station => this.stations[station].stationName.length));
-    this.margin.left = maxTextLength * 6;
-
-    this.chart?.remove();
-    this.chart = d3
+  private createChart(): void {
+    //this.margin.left = (d3.max(this.routeStations, station => this.stations[station].stationName.length) || 10) * 6 ;
+    this.svg?.remove();
+    this.svg = d3
       .select("#trainDiagram")
       .append("svg")
       .attr("width", this.width - this.margin.left - this.margin.right)
       .attr("height", this.height + this.margin.top + this.margin.bottom);
 
-    const x = d3.scaleTime()
-      .domain([now.getTime() - this.timeWindow, now.getTime() + this.timeWindow])
+    this.chart = this.svg.append('g')
+    .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
+
+    this.xScale = d3.scaleTime()
+      .domain([this.timeReference.getTime() - this.timeWindow, this.timeReference.getTime() + this.timeWindow])
       .range([0, this.width]);
 
-    const y = d3.scaleLinear()
+    this.yScale = d3.scaleLinear()
       .domain([0, this.routeStations.length - 1])
       .range([this.height, 0]);
 
-    const trains = this.trains.filter(train => train.timeTableRows.filter(this.filterScheduledTime).length > 0);
+    this.drawTrains();
 
-    // Draw vertical lines
-    for (let i = 1; i <= this.windowSize * 2; i++) {
-      const date = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      date.setHours(now.getHours() - this.windowSize + i);
-      this.drawVerticalLine(x(date), "black");
-    }
+    // Draw vertical lines indicating time
+    this.drawTimeLines();
 
-    const trainGroup = this.chart
-      .selectAll("g")
-      .data(trains).enter()
-      .append("g")
-      .attr("class", "train")
-      .attr("fill", "none")
-      .style("stroke-width", "2")
-      .attr("stroke", (d: Train) => d3.schemeCategory10[d.trainNumber % 10]);
+    this.drawAxis();
 
-    this.drawTrainLine(trainGroup, x, y);
-
-    this.drawTooltipCircles(trainGroup, x, y);
-
-    // draw current time as vertical line
-    this.drawVerticalLine(x(Date.now()), "red", 3);
-
-    this.drawAxis(x, y);
-
-    this.chart.call(d3.drag().on("drag", this.onDrag));
+    this.svg.call(d3.drag().on("drag", this.onDrag));
   }
 
+
+
+  private drawTrains() {    
+    this.trainGroup = this.chart
+      .selectAll("g")
+      .data(this.trains.filter(train => train.timeTableRows.filter(this.filterScheduledTime).length > 0))
+      .join("g")
+      .attr("class", "train")
+      .attr("stroke", (d: Train) => d3.schemeCategory10[d.trainNumber % 10]);
+
+    this.drawTrainLine();
+
+    this.drawTooltipCircles();
+  }
+
+  private drawTimeLines() {
+    this.drawVerticalLine(this.xScale(Date.now()), "red", 3);
+    for (let i = 1; i <= this.windowSize * 2; i++) {
+      const date = new Date(this.timeReference.getFullYear(), this.timeReference.getMonth(), this.timeReference.getDate());
+      date.setHours(this.timeReference.getHours() - this.windowSize + i);
+      this.drawVerticalLine(this.xScale(date), "black");
+    }
+  }
+
+  private redrawChart(): void {
+    d3.selectAll(".vertical-line").remove();
+    this.drawTimeLines();
+
+    this.xScale.domain([this.timeReference.getTime() - this.timeWindow, this.timeReference.getTime() + this.timeWindow]);
+    this.drawAxisX();
+
+    this.trainGroup.remove();
+    this.drawTrains();
+    }
+
   private onDrag = (e: any) => {
-    this.timeReference = new Date(this.timeReference.getTime() - e.dx * 60 * 1000);
-    this.drawChart();
+    this.timeReference = new Date(this.timeReference.getTime() - e.dx * 5000);
+    this.redrawChart();
   };
 
-  private drawAxis(x: any, y: any) {
+  private drawAxis() {
+    this.drawAxisX();
     this.chart.append('g')
-      .attr("transform", `translate(${this.margin.left},${this.height + this.margin.top})`)
-      .call(d3.axisBottom(x))
-
-    this.chart.append('g')
-      .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
-      .call(d3.axisLeft(y)
+        .attr("class", "y-axis")
+      .call(d3.axisLeft(this.yScale)
         .ticks(this.routeStations.length)
         .tickFormat((d, i) => this.stations[this.routeStations[i]].stationName));
   }
 
+  private drawAxisX() {
+    d3.selectAll(".x-axis").remove();
+    this.chart.append('g')
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0,${this.height})`)
+      .call(d3.axisBottom(this.xScale));
+  }
+
   private drawVerticalLine(xPosition: number, color: string, width: number = 1) {
     this.chart.append("line")
+      .attr("class", "vertical-line")
       .attr("x1", xPosition).attr("y1", 0)
       .attr("x2", xPosition).attr("y2", this.height)
       .style("stroke", color).style("stroke-width", width)
-      .style("fill", "none")
-      .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+      .style("fill", "none");
   }
 
-  private drawTrainLine(trainGroup: any, x: any, y: any) {
-    const yFromCode = (code: string) => y(this.routeStations.indexOf(code))
+  private drawTrainLine() {
+    const yFromCode = (code: string) => this.yScale(this.routeStations.indexOf(code))
 
     const scheduledTimeLines = d3.line<TimeTable>()
-      .x(d => x(new Date(d.scheduledTime).getTime()))
+      .x(d => this.xScale(new Date(d.scheduledTime).getTime()))
       .y(d => yFromCode(d.stationShortCode));
 
-    const scheduledTimePath = trainGroup.append("path")
+    const scheduledTimePath = this.trainGroup.append("path")
       .attr("d", (d: Train) => scheduledTimeLines(d.timeTableRows.filter(this.filterScheduledTime)))
-      .attr("class", "trainLine")
       .attr("class", (d: Train) => `train-${d.trainNumber}`)
-      .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+      .style("fill", "none")
+      .style("stroke-width", "2");
+
+    // const actualTimeLines = d3.line<TrackingEvent>()
+    //    .x(d => x(new Date(d.timestamp).getTime()))
+    //    .y(d => yFromCode(d.station));
+
+    // const actualTimePath = trainGroup.append("path")
+    //   .attr("d", (d: Train) => {
+    //     console.log(d.trainNumber, d.trackingEventRows);
+    //     return actualTimeLines(d.trackingEventRows ?? []);
+    //   })
+    //   .attr("class", "trainLine")
+    //   .attr("class", (d: Train) => `train-${d.trainNumber}`);
+
+    // scheduledTimePath.on("mouseover", (d: any, train: Train) => {
+    //   d3.select(`.train-${train.trainNumber}`).style("stroke-width", "3");
+    // })
+    // scheduledTimePath.on("mouseleave", (d: any, train: Train) => {
+    //   d3.select(`.train-${train.trainNumber}`).style("stroke-width", "2");
+    // });
   }
 
-  private drawTooltipCircles(train: any, x: any, y: any): any {
-    const dx = (timetable: TimeTable) => this.margin.left + x(new Date(timetable.scheduledTime).getTime());
-    const dy = (timetable: TimeTable) => this.margin.top + y(this.routeStations.indexOf(timetable.stationShortCode));
-    const circles = train.append("g")
+  private drawTooltipCircles(): any {
+    const dx = (timetable: TimeTable) => this.xScale(new Date(timetable.scheduledTime).getTime());
+    const dy = (timetable: TimeTable) => this.yScale(this.routeStations.indexOf(timetable.stationShortCode));
+
+    const tooltipCircles = this.trainGroup.append("g")
       .attr("fill", (d: Train) => d3.schemeCategory10[d.trainNumber % 10])
       .selectAll("circle")
-      .data((d: Train) => d.timeTableRows.filter(this.filterScheduledTime).map(table => {
-        table.train = d;
+      .data((train: Train) => train.timeTableRows.filter(this.filterScheduledTime).map((table: TimeTable) => {
+        table.train = train;
         return table;
       }))
       .join("circle")
-      .attr("transform", (d: TimeTable) => `translate(${dx(d)},${dy(d)})`)
-      .attr("stroke", (d: TimeTable) => `${(d.trainStopping) ? 'black' : 'white'}`)
-      .attr("r", 3);
+      .attr("transform", (table: TimeTable) => `translate(${dx(table)},${dy(table)})`)
+      .attr("stroke", (table: TimeTable) => `${(table.trainStopping) ? 'black' : 'white'}`)
+      .attr("r", 5);
 
-    this.drawTooltip(circles, (e: any, table: TimeTable) => {
+    this.tooltip = d3.select("#tooltip");
+    this.tooltip.style("opacity", 0);
+    tooltipCircles
+    .on("mouseover", (e: any, table: TimeTable) => {
+      //d3.select(".trainLine").style("stroke-width", "2");
       this.tooltip
-        .style("left", e.x + "px")
-        .style("top", e.y - 20 + "px");
+      .style("left", e.x + 5 + "px")
+      .style("top", e.y - 35 + "px");
 
-      const currentTrain = table.train!;
+      d3.select(`.train-${table.train?.trainNumber}`)
+        .style("stroke-width", "5");
+      this.tooltip.style("opacity", 1);
+    })
+    .on("mousemove", (e: any, table: TimeTable) => {
+      this.tooltip
+        .style("left", e.x + 5 + "px")
+        .style("top", e.y - 35 + "px");
 
-      d3.select(".trainLine").style("stroke-width", "2");
-      d3.select(`.train-${currentTrain.trainNumber}`)
-        .style("stroke-width", "3");
-
-      if (!currentTrain.commuterLineID) {
-        this.tooltip
-          .select(".commuter-title")
-          .html(`<th>${currentTrain.trainType}</th><td>${currentTrain.trainNumber}</td>`);
-      } else {
-        this.tooltip
-          .select(".commuter-title")
-          .html(`<th>${currentTrain.trainType} ${currentTrain.commuterLineID}</th><td>${currentTrain.trainNumber}</td>`);
-      }
+      this.tooltip
+        .select(".commuter-title")
+        .html(`<td>(${table.train?.trainType}) ${table.train?.commuterLineID}</th><td>${table.train?.trainNumber}</td>`);
       this.tooltip
         .select(".commuter-station")
         .html(`<td>Station:</td><td>${this.stations[table.stationShortCode].stationName} (${(table.trainStopping) ? 'stop' : 'skip'})</td>`);
       this.tooltip
         .select(".commuter-time")
         .html(`<td>Time:</td><td>${new Date(table.scheduledTime).toTimeString().slice(0, 8)}</td>`);
+    })
+    .on("mouseout", (e: any, table: TimeTable) => {
+      d3.select(`.train-${table.train?.trainNumber}`)
+        .style("stroke-width", "2");
+      this.tooltip.style("opacity", 0);
     });
-  }
 
-  private drawTooltip(element: any, onMouseMove: any) {
-    this.tooltip = d3.select("#tooltip").style("opacity", 0);
-    element.on("mousemove", onMouseMove)
-      .on("mouseover", (e: any, train: Train) => this.tooltip.style("opacity", 1));
   }
 
   ngOnInit(): void {
@@ -213,8 +258,18 @@ export class TrainDiagramComponent implements OnInit {
   private fetchData() {
     this.scheduleService.getTrains(this.departureCityCode, this.destinationCityCode).subscribe((trains) => {
       this.trains = trains;
+
+      // for (const train of this.trains) {
+      //   this.trackingService.getTrackingData(train.trainNumber)
+      //       .subscribe(events => {
+      //         console.log("Fetched events for train", train.trainNumber);
+      //         console.log("events", events);
+      //         train.trackingEventRows = events;
+      //       });
+      // }
+
       this.processStations();
-      this.drawChart();
+      this.createChart();
     });  
   }
 

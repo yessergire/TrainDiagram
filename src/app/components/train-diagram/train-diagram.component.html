@@ -1,4 +1,4 @@
-<p>There are {{trains?.length}} trains traveling between Helsinki and {{stations[destinationCityCode]?.stationName ?? '?'}}.</p>
+<p>There are {{trains?.length ?? 0}} trains traveling between Helsinki and {{stations[destinationCityCode]?.stationName ?? '?'}}.</p>
 
 <div id="trainDiagram"></div>
 

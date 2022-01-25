@@ -12,6 +12,7 @@ export class TrackingService {
   constructor(private http: HttpClient) { }
 
   getTrackingData(trainNumber: number) : Observable<TrackingEvent[]> {
-    return this.http.get<TrackingEvent[]>(`${this.apiURL}/${(new Date().toISOString().slice(0,10))}/${trainNumber}`);
+    const date = new Date().toISOString().slice(0,10);
+    return this.http.get<TrackingEvent[]>(`${this.apiURL}/${date}/${trainNumber}`);
   }
 }
