@@ -24,4 +24,9 @@ Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app w
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
 ## Architecture
-The diagram is drawn by has
+The data is downloaded and processed by `ScheduleComponent` which then
+feeds to data to the diagram. The diagram is drawn the `TrainDiagramComponent`.
+The train schedules are fetched using `ScheduleService`.
+The `StationsService` gets the train station data, and
+the `TrackingService` gets the train tracking data.
+Any updates on the state are handled by the `UIService`.
