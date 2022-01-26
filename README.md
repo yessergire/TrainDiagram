@@ -6,6 +6,8 @@ This project is hosted at http://train-diagram.herokuapp.com/.
 The diagram has timeline on the x axis and stations on the y axis.
 The thin lines on the diagram represent the estimated schedule of a
 train and the bold lines represent the actual schedule.
+To see more information on the train move the mouse over to the circles
+that are on the line representing the train.
 The diagram can be dragged to move the time window on the x axis.
 The red vertical line shows the current time on the diagram.
 To reset the time window to the current time click the `reset view`-button.
