@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http'
 
 import { AppComponent } from './app.component';
-import { HeaderComponent } from './components/header/header.component';
 import { ScheduleComponent } from './components/schedule/schedule.component';
 import { CitySelectorComponent } from './components/city-selector/city-selector.component';
 import { TrainDiagramComponent } from './components/train-diagram/train-diagram.component';
@@ -13,7 +12,6 @@ import { TrainDiagramComponent } from './components/train-diagram/train-diagram.
 @NgModule({
   declarations: [
     AppComponent,
-    HeaderComponent,
     ScheduleComponent,
     CitySelectorComponent,
     TrainDiagramComponent

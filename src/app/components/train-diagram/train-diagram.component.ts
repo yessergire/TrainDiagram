@@ -32,13 +32,6 @@ export class TrainDiagramComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.svg = d3
-      .select("#trainDiagram")
-      .append("svg")
-      .attr("width", this.width - this.margin.left - this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom);
-
-    this.svg.call(d3.drag().on("drag", this.onDrag));
   }
 
   @HostListener('window:resize', ['$event'])
@@ -68,11 +61,17 @@ export class TrainDiagramComponent implements OnInit {
   private yFromCode = (code: string) => this.yScale(this.routeStations.indexOf(code))
 
   private createChart(): void {
+    if (this.svg != undefined)
+      this.svg.remove();
+
+    this.svg = d3
+      .select("#trainDiagram")
+      .append("svg")
+      .attr("width", this.width - this.margin.left - this.margin.right)
+      .attr("height", this.height + this.margin.top + this.margin.bottom);
+
     if (this.routeStations.length > 0)
       this.margin.left = (d3.max(this.routeStations, station => this.stations[station].stationName.length) || 10) * 6;
-
-    if (this.chart != undefined)
-      this.chart.remove();
 
     this.chart = this.svg.append('g')
       .attr("transform", `translate(${this.margin.left},${this.margin.top})`)
@@ -89,6 +88,7 @@ export class TrainDiagramComponent implements OnInit {
     this.drawTimeLines();
     this.drawTrains();
     this.drawAxis();
+    this.svg.call(d3.drag().on("drag", this.onDrag));
   }
 
   private drawTrains() {
