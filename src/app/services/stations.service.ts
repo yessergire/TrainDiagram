@@ -12,6 +12,6 @@ export class StationsService {
   constructor(private http: HttpClient) { }
 
   getStations() : Observable<Station[]> {
-    return this.http.get<Station[]>('assets/stations.json');
+    return this.http.get<Station[]>(this.apiURL);
   }
 }

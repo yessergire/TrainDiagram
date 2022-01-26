@@ -6,8 +6,7 @@
     position: absolute;
     left: 756px;
     top: 344px;
-    height: 70px;
-    opacity: 0;
+    visibility: hidden;
 }
 
 #tooltip > h3 {

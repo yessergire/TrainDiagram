@@ -1,16 +1,16 @@
 export interface TrackingEvent {
-  id: number,
-  version: number,
+  id?: number,
+  version?: number,
   trainNumber: string,
-  departureDate: string,
+  departureDate?: string,
   timestamp: string,
-  trackSection: string,
+  trackSection?: string,
   nextTrackSection?: string,
   previousTrackSection?: string,
   station: string,
   nextStation?: string,
   previousStation?: string,
-  type: string,
+  type?: string,
 }
 
 export interface Station {
@@ -57,5 +57,4 @@ export interface Train {
   timetableAcceptanceDate: string,
   deleted?: boolean,
   timeTableRows: TimeTable[],
-  trackingEventRows?: TrackingEvent[]
 }

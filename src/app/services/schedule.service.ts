@@ -11,7 +11,6 @@ export class ScheduleService {
 
   constructor(private http: HttpClient) { }
 
-  //getTrains(departure: string, arrival: string, startDate: string, endDate: string) : Observable<Train[]> {
   getTrains(departure: string, arrival: string) : Observable<Train[]> {
     const date = new Date().toISOString().slice(0,10);
     return this.http.get<Train[]>(`${this.apiURL}/${departure}/${arrival}?departure_date=${date}`);
