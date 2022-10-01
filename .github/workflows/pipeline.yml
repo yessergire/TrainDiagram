@@ -29,7 +29,7 @@ jobs:
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "train-diagram"
-          heroku_email: "yessergire.mohamed@outlook.com"
+          heroku_email: "yessergire@outlook.com"
           healthcheck: "https://train-diagram.herokuapp.com/health"
           checkstring: "ok"
           delay: 90
