@@ -1,0 +1,52 @@
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  simple_deployment_pipeline:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: npm install
+        run: npm install
+      - name: lint
+        run: npm run lint
+      - name: build
+        run: npm run build
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        if: github.event_name == 'push'
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "train-diagram"
+          heroku_email: "yessergire.mohamed@outlook.com"
+          healthcheck: "https://train-diagram.herokuapp.com/health"
+          checkstring: "ok"
+          delay: 90
+          rollbackonhealthcheckfailed: true
+
+  tag_release:
+    if: github.event_name == 'push'
+    needs: [simple_deployment_pipeline]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+
