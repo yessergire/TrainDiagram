@@ -7,7 +7,7 @@ import { Train } from '../Types';
   providedIn: 'root'
 })
 export class ScheduleService {
-  private apiURL = 'https://rata.digitraffic.fi/api/v1/live-trains/station/';
+  private apiURL = 'https://rata.digitraffic.fi/api/v1/live-trains/station';
 
   constructor(private http: HttpClient) { }
 

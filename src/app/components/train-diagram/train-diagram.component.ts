@@ -31,6 +31,7 @@ export class TrainDiagramComponent implements OnInit {
     return this.windowSize * 60 * 60 * 1000;
   }
 
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngOnInit(): void {
   }
 
